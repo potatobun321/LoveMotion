@@ -1,4 +1,4 @@
-# Anim8tor
+# LoveMotion
 
 A standalone visual animation editor for **LÖVE (Love2D)** and `anim8`.
 
@@ -46,7 +46,7 @@ Click **COPY SNIPPET** at the bottom-right to copy a ready-to-run `anim8` snippe
 
 ### Option 2: Pure-Data Manifest (Best for Custom Engines & State Managers)
 Enter a folder/file name under `File:` and click **SAVE MANIFEST**.
-This writes `exports/<name>/<name>.lua` alongside `spritesheet.<ext>` and opens the folder. The `.lua` file is a plain data table with zero dependency on Anim8tor:
+This writes `exports/<name>/<name>.lua` alongside `spritesheet.<ext>` and opens the folder. The `.lua` file is a plain data table with zero dependency on LoveMotion:
 
 ```lua
 return {
@@ -59,11 +59,11 @@ return {
 ```
 
 ### Option 3: Optional 1-File Runtime Loader
-Copy [anim8tor_loader.lua](runtime/anim8tor_loader.lua) into your LÖVE project next to `anim8.lua`:
+Copy [lovemotion.lua](runtime/lovemotion.lua) into your LÖVE project next to `anim8.lua`:
 
 ```lua
-local anim8tor = require("anim8tor_loader")
-local hero = anim8tor.load("assets/hero/hero.lua", "lib.anim8")
+local lovemotion = require("lovemotion")
+local hero = lovemotion.load("assets/hero/hero.lua", "lib.anim8")
 
 -- In love.update(dt):
 hero.animations.idle:update(dt)
@@ -76,12 +76,12 @@ hero.animations.idle:draw(hero.image, x, y)
 
 ## Packaging for Distribution
 
-* **Cross-platform `.love` file:** Zip the contents of this folder (you can omit `suit/docs/` to keep the archive small) and rename the zip to `Anim8tor.love`. Works on Windows, macOS, and Linux.
-* **Windows standalone `.exe`:** Fuse `Anim8tor.love` with `love.exe`:
+* **Cross-platform `.love` file:** Zip the contents of this folder (you can omit `suit/docs/` to keep the archive small) and rename the zip to `LoveMotion.love`. Works on Windows, macOS, and Linux.
+* **Windows standalone `.exe`:** Fuse `LoveMotion.love` with `love.exe`:
   ```cmd
-  copy /b love.exe+Anim8tor.love Anim8tor.exe
+  copy /b love.exe+LoveMotion.love LoveMotion.exe
   ```
-  Distribute `Anim8tor.exe` together with the LÖVE `.dll` files.
+  Distribute `LoveMotion.exe` together with the LÖVE `.dll` files.
 
 ---
 

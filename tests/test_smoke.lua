@@ -1,5 +1,5 @@
 -- tests/test_smoke.lua
--- Lightweight headless smoke test for Anim8tor's runtime loader & manifest format.
+-- Lightweight headless smoke test for LoveMotion's runtime loader & manifest format.
 -- Run from the repo root: lua tests/test_smoke.lua
 
 local sampleManifest = [[
@@ -13,7 +13,7 @@ return {
 }
 ]]
 
--- Minimal LÖVE mock so anim8.lua + runtime/anim8tor_loader.lua can run headlessly
+-- Minimal LÖVE mock so anim8.lua + runtime/lovemotion.lua can run headlessly
 local fakeImage = {
     getWidth = function() return 128 end,
     getHeight = function() return 128 end,
@@ -40,7 +40,7 @@ _G.love = {
     }
 }
 
-local loader = require("runtime.anim8tor_loader")
+local loader = require("runtime.lovemotion")
 local hero = loader.load("assets/hero/hero.lua", "anim8")
 
 assert(hero.image == fakeImage, "image mismatch")

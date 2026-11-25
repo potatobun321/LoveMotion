@@ -16,7 +16,7 @@ function ui_left.update()
 
     suit.layout:reset(padding, padding, 6)
 
-    suit.Label("ANIM8TOR", {align="left", font=state.font}, suit.layout:row(fullW, 24))
+    suit.Label("LOVEMOTION", {align="left", font=state.font}, suit.layout:row(fullW, 24))
 
     -- Image dimensions & remainder indicator
     if state.image then
