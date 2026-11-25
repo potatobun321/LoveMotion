@@ -1,0 +1,128 @@
+name: Release LoveMotion
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-love:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Lua and run smoke tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1 zip
+          lua5.1 tests/test_smoke.lua
+
+      - name: Build LoveMotion.love
+        run: |
+          mkdir -p out
+          zip -9 -r out/LoveMotion.love . \
+            -x "*.git*" "tests/*" "exports/*" "build/*" "suit/docs/*" "*.love" "*.exe" "*.dll"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lovemotion-love
+          path: out/LoveMotion.love
+
+  build-windows:
+    needs: build-love
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: lovemotion-love
+          path: .
+
+      - name: Download LÖVE 11.5 win64 and fuse LoveMotion.exe
+        shell: pwsh
+        run: |
+          $loveUrl = "https://github.com/love2d/love/releases/download/11.5/love-11.5-win64.zip"
+          Invoke-WebRequest -Uri $loveUrl -OutFile love-win64.zip
+          Expand-Archive -Path love-win64.zip -DestinationPath love_tmp
+          $loveDir = Get-ChildItem -Path love_tmp -Directory | Select-Object -First 1
+
+          New-Item -ItemType Directory -Force -Path dist_win64 | Out-Null
+          cmd /c copy /b "$($loveDir.FullName)\love.exe+LoveMotion.love" "dist_win64\LoveMotion.exe"
+          Copy-Item "$($loveDir.FullName)\*.dll" dist_win64\
+          Copy-Item "MIT-LICENSE.txt" dist_win64\
+
+          Compress-Archive -Path dist_win64\* -DestinationPath LoveMotion-win64.zip -Force
+
+      - name: Build Windows Installer (Inno Setup)
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) {
+            choco install innosetup -y --no-progress
+            $env:Path += ";C:\Program Files (x86)\Inno Setup 6"
+          }
+          $ver = "${{ github.ref_name }}".TrimStart("v")
+          if (-not $ver -or $ver -eq "main") { $ver = "0.1.0-alpha" }
+          iscc "/DMyAppVersion=$ver" build\lovemotion.iss
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lovemotion-windows
+          path: |
+            LoveMotion-win64.zip
+            build\dist_installer\LoveMotion-Setup.exe
+
+  build-linux:
+    needs: build-love
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: lovemotion-love
+          path: .
+
+      - name: Build LoveMotion-x86_64.AppImage
+        run: |
+          wget -q "https://github.com/love2d/love/releases/download/11.5/love-11.5-x86_64.AppImage" -O love.AppImage
+          chmod +x love.AppImage
+          ./love.AppImage --appimage-extract
+
+          mv squashfs-root/usr/bin/love squashfs-root/usr/bin/love.orig
+          cat squashfs-root/usr/bin/love.orig LoveMotion.love > squashfs-root/usr/bin/love
+          chmod +x squashfs-root/usr/bin/love
+          rm squashfs-root/usr/bin/love.orig
+
+          sed -i 's/^Name=.*/Name=LoveMotion/' squashfs-root/love.desktop || true
+          sed -i 's/^Comment=.*/Comment=Visual animation editor for LOVE2D and anim8/' squashfs-root/love.desktop || true
+
+          wget -q "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O appimagetool
+          chmod +x appimagetool
+          ARCH=x86_64 ./appimagetool --appimage-extract-and-run squashfs-root LoveMotion-x86_64.AppImage
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lovemotion-linux
+          path: LoveMotion-x86_64.AppImage
+
+  release:
+    needs: [build-love, build-windows, build-linux]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
+          files: |
+            artifacts/lovemotion-love/LoveMotion.love
+            artifacts/lovemotion-windows/LoveMotion-win64.zip
+            artifacts/lovemotion-windows/LoveMotion-Setup.exe
+            artifacts/lovemotion-linux/LoveMotion-x86_64.AppImage
