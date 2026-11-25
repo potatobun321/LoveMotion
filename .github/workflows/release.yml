@@ -76,48 +76,8 @@ jobs:
             LoveMotion-win64.zip
             build\dist_installer\LoveMotion-Setup.exe
 
-  build-linux:
-    needs: build-love
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: lovemotion-love
-          path: .
-
-      - name: Build LoveMotion-x86_64.AppImage
-        env:
-          APPIMAGE_EXTRACT_AND_RUN: "1"
-          ARCH: x86_64
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y file libfuse2t64 || sudo apt-get install -y file libfuse2 || true
-
-          wget "https://github.com/love2d/love/releases/download/11.5/love-11.5-x86_64.AppImage" -O love.AppImage
-          chmod +x love.AppImage
-          ./love.AppImage --appimage-extract
-
-          mv squashfs-root/usr/bin/love squashfs-root/usr/bin/love.orig
-          cat squashfs-root/usr/bin/love.orig LoveMotion.love > squashfs-root/usr/bin/love
-          chmod +x squashfs-root/usr/bin/love
-          rm squashfs-root/usr/bin/love.orig
-
-          for df in squashfs-root/*.desktop; do
-            [ -f "$df" ] && sed -i 's/^Name=.*/Name=LoveMotion/' "$df" || true
-          done
-
-          wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" -O appimagetool
-          chmod +x appimagetool
-          ./appimagetool -n squashfs-root LoveMotion-x86_64.AppImage
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: lovemotion-linux
-          path: LoveMotion-x86_64.AppImage
-
   release:
-    needs: [build-love, build-windows, build-linux]
+    needs: [build-love, build-windows]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
@@ -133,4 +93,3 @@ jobs:
             artifacts/lovemotion-love/LoveMotion.love
             artifacts/lovemotion-windows/LoveMotion-win64.zip
             artifacts/lovemotion-windows/LoveMotion-Setup.exe
-            artifacts/lovemotion-linux/LoveMotion-x86_64.AppImage
