@@ -1,0 +1,6 @@
+exports/
+*.love
+*.exe
+*.dll
+.DS_Store
+Thumbs.db
