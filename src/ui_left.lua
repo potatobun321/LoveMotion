@@ -18,11 +18,38 @@ function ui_left.update()
 
     suit.Label("ANIM8TOR", {align="left", font=state.font}, suit.layout:row(fullW, 24))
 
+    -- Image dimensions & remainder indicator
+    if state.image then
+        local iw, ih = state.image:getDimensions()
+        local fw = tonumber(state.inputState.frameWidth.text) or 32
+        local fh = tonumber(state.inputState.frameHeight.text) or 32
+        local l = tonumber(state.inputState.left.text) or 0
+        local t = tonumber(state.inputState.top.text) or 0
+        local b = tonumber(state.inputState.border.text) or 0
+        local remX = (iw - l) % math.max(1, fw + b)
+        local remY = (ih - t) % math.max(1, fh + b)
+        local infoTxt = string.format("%dx%dpx (rem %d,%d)", iw, ih, remX, remY)
+        suit.Label(infoTxt, {align="left", font=state.fontSmall}, suit.layout:row(fullW, 18))
+    end
+
+    -- Grid mode toggle + AUTO-DETECT + FIT
+    local mr1x, mr1y = suit.layout:row(fullW, 22)
+    local hw = math.floor((fullW - 6) / 2)
+    local gModeTxt = (state.gridMode == "count") and "BY COUNT" or "BY PIXELS"
+    if suit.Button(gModeTxt, {id="grid_mode", font=state.fontSmall}, mr1x, mr1y, hw, 22).hit then
+        state.gridMode = (state.gridMode == "count") and "pixels" or "count"
+        if state.gridMode == "count" then logic.applyCountGrid() end
+    end
+    if suit.Button("AUTO", {id="auto_detect", font=state.fontSmall}, mr1x + hw + 6, mr1y, hw, 22).hit then
+        logic.autoDetectGrid()
+    end
+
     -- Quick size presets + FIT zoom
     local prx, pry = suit.layout:row(fullW, 24)
     local bw = math.floor((fullW - 12) / 4)
     for idx, sz in ipairs({16, 32, 64}) do
         if suit.Button(tostring(sz), {id="p"..sz, font=state.fontSmall}, prx + (idx - 1) * (bw + 4), pry, bw, 22).hit then
+            state.gridMode = "pixels"
             state.inputState.frameWidth.text = tostring(sz)
             state.inputState.frameHeight.text = tostring(sz)
             logic.updateGrid()
@@ -40,11 +67,19 @@ function ui_left.update()
         end
     end
 
-    addField("Frame W:", state.inputState.frameWidth, logic.updateGrid)
-    addField("Frame H:", state.inputState.frameHeight, logic.updateGrid)
-    addField("Margin L:", state.inputState.left, logic.updateGrid)
-    addField("Margin T:", state.inputState.top, logic.updateGrid)
-    addField("Border:", state.inputState.border, logic.updateGrid)
+    if state.gridMode == "count" then
+        addField("Cols:", state.inputState.cols, logic.applyCountGrid)
+        addField("Rows:", state.inputState.rows, logic.applyCountGrid)
+        addField("Margin L:", state.inputState.left, logic.applyCountGrid)
+        addField("Margin T:", state.inputState.top, logic.applyCountGrid)
+        addField("Border:", state.inputState.border, logic.applyCountGrid)
+    else
+        addField("Frame W:", state.inputState.frameWidth, logic.updateGrid)
+        addField("Frame H:", state.inputState.frameHeight, logic.updateGrid)
+        addField("Margin L:", state.inputState.left, logic.updateGrid)
+        addField("Margin T:", state.inputState.top, logic.updateGrid)
+        addField("Border:", state.inputState.border, logic.updateGrid)
+    end
 
     suit.layout:row(fullW, 6)
     suit.Label("CLIPS", {align="left", font=state.font}, suit.layout:row(fullW, 22))

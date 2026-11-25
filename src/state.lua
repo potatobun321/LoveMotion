@@ -18,6 +18,7 @@ local state = {
 
     playing = true,
     flipH = false,
+    gridMode = "pixels", -- "pixels" or "count"
 
     generatedCode = "",
     errorMessage = "",
@@ -31,6 +32,8 @@ local state = {
     inputState = {
         frameWidth = {text = "64"},
         frameHeight = {text = "64"},
+        cols = {text = "3"},
+        rows = {text = "4"},
         left = {text = "0"},
         top = {text = "0"},
         border = {text = "0"},

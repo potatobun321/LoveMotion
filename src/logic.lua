@@ -113,6 +113,96 @@ function logic.stepFrame(dir)
     state.animation:gotoFrame(nxt)
 end
 
+function logic.applyCountGrid()
+    if not state.image then return end
+    local cols = math.max(1, math.floor(tonumber(state.inputState.cols.text) or 1))
+    local rows = math.max(1, math.floor(tonumber(state.inputState.rows.text) or 1))
+    local l = tonumber(state.inputState.left.text) or 0
+    local t = tonumber(state.inputState.top.text) or 0
+    local b = tonumber(state.inputState.border.text) or 0
+    local imgW, imgH = state.image:getDimensions()
+
+    local fw = math.max(1, math.floor((imgW - l) / cols) - b)
+    local fh = math.max(1, math.floor((imgH - t) / rows) - b)
+    state.inputState.frameWidth.text = tostring(fw)
+    state.inputState.frameHeight.text = tostring(fh)
+    logic.updateGrid()
+end
+
+function logic.autoDetectGrid()
+    if not state.fileData or not state.image then return end
+    local ok, imgData = pcall(love.image.newImageData, state.fileData)
+    if not ok or not imgData then
+        state.errorMessage = "Auto-detect failed."
+        return
+    end
+
+    local w, h = imgData:getDimensions()
+    local bgR, bgG, bgB, bgA = imgData:getPixel(0, 0)
+
+    local function isEmpty(x, y)
+        local r, g, b, a = imgData:getPixel(x, y)
+        if a < 0.05 and bgA < 0.05 then return true end
+        if a < 0.05 then return true end
+        return math.abs(r - bgR) < 0.04 and math.abs(g - bgG) < 0.04 and math.abs(b - bgB) < 0.04 and math.abs(a - bgA) < 0.04
+    end
+
+    local function findSegments(len, checkLineEmpty)
+        local segs = {}
+        local inSeg = false
+        local segStart = 0
+        for i = 0, len - 1 do
+            local empty = checkLineEmpty(i)
+            if not empty and not inSeg then
+                inSeg = true
+                segStart = i
+            elseif empty and inSeg then
+                inSeg = false
+                table.insert(segs, { start = segStart, stop = i - 1 })
+            end
+        end
+        if inSeg then
+            table.insert(segs, { start = segStart, stop = len - 1 })
+        end
+        return segs
+    end
+
+    local colSegs = findSegments(w, function(x)
+        for y = 0, h - 1 do
+            if not isEmpty(x, y) then return false end
+        end
+        return true
+    end)
+
+    local rowSegs = findSegments(h, function(y)
+        for x = 0, w - 1 do
+            if not isEmpty(x, y) then return false end
+        end
+        return true
+    end)
+
+    if #colSegs == 0 or #rowSegs == 0 then
+        state.errorMessage = "No sprites detected."
+        return
+    end
+
+    local cols = #colSegs
+    local rows = #rowSegs
+    state.inputState.cols.text = tostring(cols)
+    state.inputState.rows.text = tostring(rows)
+    state.inputState.left.text = "0"
+    state.inputState.top.text = "0"
+    state.inputState.border.text = "0"
+
+    -- Divide evenly by detected sprite count so cells stay centered
+    local fw = math.max(1, math.floor(w / cols))
+    local fh = math.max(1, math.floor(h / rows))
+    state.inputState.frameWidth.text = tostring(fw)
+    state.inputState.frameHeight.text = tostring(fh)
+    state.gridMode = "count"
+    logic.updateGrid()
+end
+
 function logic.updateGrid()
     if not state.image then return end
     local fw = tonumber(state.inputState.frameWidth.text) or 32
