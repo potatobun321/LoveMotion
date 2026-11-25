@@ -93,7 +93,11 @@ function ui_left.update()
     end
 
     suit.layout:row(fullW, 6)
-    suit.Label("CLIPS", {align="left", font=state.font}, suit.layout:row(fullW, 22))
+    local clipNames = {}
+    for k in pairs(state.clips) do table.insert(clipNames, k) end
+    table.sort(clipNames)
+    suit.Label("CLIPS (" .. #clipNames .. ")", {align="left", font=state.font}, suit.layout:row(fullW, 20))
+    suit.Label(table.concat(clipNames, ", "), {align="left", font=state.fontSmall}, suit.layout:row(fullW, 16))
 
     -- Clip switcher row: <  clipName  >  +  X
     local crx, cry = suit.layout:row(fullW, 24)

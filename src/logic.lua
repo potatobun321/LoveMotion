@@ -124,10 +124,14 @@ end
 
 function logic.newClip()
     logic.commitClipName()
+    local prevName = state.activeClip
     syncActiveClip()
-    local i = 1
+    local i = state.nextClipNum or 1
     while state.clips["clip_" .. i] do i = i + 1 end
-    logic.switchClip("clip_" .. i)
+    state.nextClipNum = i + 1
+    local newName = "clip_" .. i
+    logic.switchClip(newName)
+    logic.notify("Kept '" .. prevName .. "', new '" .. newName .. "'")
 end
 
 function logic.deleteActiveClip()

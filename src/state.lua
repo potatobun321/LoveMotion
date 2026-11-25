@@ -29,6 +29,7 @@ local state = {
 
     selectedFrames = {},
     activeClip = "idle",
+    nextClipNum = 1,
     clips = {
         idle = { frames = {}, duration = "0.1", mode = "loop" }
     },
