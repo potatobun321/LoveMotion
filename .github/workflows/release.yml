@@ -103,12 +103,13 @@ jobs:
           chmod +x squashfs-root/usr/bin/love
           rm squashfs-root/usr/bin/love.orig
 
-          sed -i 's/^Name=.*/Name=LoveMotion/' squashfs-root/love.desktop || true
-          sed -i 's/^Comment=.*/Comment=Visual animation editor for LOVE2D and anim8/' squashfs-root/love.desktop || true
+          for df in squashfs-root/*.desktop; do
+            [ -f "$df" ] && sed -i 's/^Name=.*/Name=LoveMotion/' "$df" || true
+          done
 
           wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" -O appimagetool
           chmod +x appimagetool
-          ./appimagetool squashfs-root LoveMotion-x86_64.AppImage
+          ./appimagetool -n squashfs-root LoveMotion-x86_64.AppImage
 
       - uses: actions/upload-artifact@v4
         with:
