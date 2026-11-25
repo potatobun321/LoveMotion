@@ -67,11 +67,33 @@ function logic.applyClipPreset(kind)
     logic.switchClip(list[1])
 end
 
+function logic.commitClipName()
+    local raw = state.inputState.clipName.text or ""
+    local newName = raw:match("^%s*(.-)%s*$")
+    if newName == "" then
+        state.inputState.clipName.text = state.activeClip
+        return true
+    end
+    if newName == state.activeClip then return true end
+    if state.clips[newName] then
+        logic.notify("Clip '" .. newName .. "' already exists!")
+        state.inputState.clipName.text = state.activeClip
+        return false
+    end
+    syncActiveClip()
+    state.clips[newName] = state.clips[state.activeClip]
+    state.clips[state.activeClip] = nil
+    state.activeClip = newName
+    state.inputState.clipName.text = newName
+    return true
+end
+
 function logic.switchClip(name)
     if not name or name == "" then return end
+    logic.commitClipName()
     syncActiveClip()
     if not state.clips[name] then
-        state.clips[name] = { frames = {}, duration = state.inputState.duration.text }
+        state.clips[name] = { frames = {}, duration = state.inputState.duration.text, mode = "loop" }
     end
     state.activeClip = name
     state.inputState.clipName.text = name
@@ -81,15 +103,12 @@ function logic.switchClip(name)
 end
 
 function logic.renameActiveClip(newName)
-    if not newName or newName == "" or newName == state.activeClip then return end
-    if state.clips[newName] then return end
-    syncActiveClip()
-    state.clips[newName] = state.clips[state.activeClip]
-    state.clips[state.activeClip] = nil
-    state.activeClip = newName
+    state.inputState.clipName.text = newName or ""
+    logic.commitClipName()
 end
 
 function logic.cycleClip(dir)
+    logic.commitClipName()
     syncActiveClip()
     local names = {}
     for k in pairs(state.clips) do table.insert(names, k) end
@@ -104,6 +123,7 @@ function logic.cycleClip(dir)
 end
 
 function logic.newClip()
+    logic.commitClipName()
     syncActiveClip()
     local i = 1
     while state.clips["clip_" .. i] do i = i + 1 end
@@ -396,6 +416,7 @@ function logic.saveToDisk()
         state.errorMessage = "Drop a spritesheet first!"
         return
     end
+    logic.commitClipName()
     syncActiveClip()
 
     local hasAnyFrames = false

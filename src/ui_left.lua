@@ -100,8 +100,8 @@ function ui_left.update()
     if suit.Button("<", {id="clip_prev", font=state.fontSmall}, crx, cry, 26, 22).hit then
         logic.cycleClip(-1)
     end
-    if suit.Input(state.inputState.clipName, {id="clip_name", font=state.fontSmall}, crx + 30, cry, fullW - 122, 22).changed then
-        logic.renameActiveClip(state.inputState.clipName.text)
+    if suit.Input(state.inputState.clipName, {id="clip_name", font=state.fontSmall}, crx + 30, cry, fullW - 122, 22).submitted then
+        logic.commitClipName()
     end
     if suit.Button(">", {id="clip_next", font=state.fontSmall}, crx + fullW - 88, cry, 26, 22).hit then
         logic.cycleClip(1)
