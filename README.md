@@ -6,10 +6,16 @@ Drop in a spritesheet, slice it visually, click the frames in playback order, pr
 
 ---
 
+## Project Status & Disclosure
+
+* **Early Public Release (Alpha):** LoveMotion is an early-stage project. Core slicing, previewing, and exporting work, but rough edges remain and updates or breaking changes to the UI and export format should be expected as development continues.
+* **AI Assistance:** This project was built with AI coding assistance alongside human design, testing, and direction.
+
+---
+
 ## Running
 
-1. Install **LÖVE 11.x** or newer from [love2d.org](https://love2d.org/).
-2. Run inside this folder:
+1. Download `LoveMotion.love` or `LoveMotion-win64.zip` from the [Releases](https://github.com/potatobun321/LoveMotion/releases) page, **or** clone this repository and run it with **LÖVE 11.x** or newer ([love2d.org](https://love2d.org/)):
 
 ```bash
 love .
@@ -19,10 +25,10 @@ love .
 
 ## Controls & Workflow
 
-1. **Load a Spritesheet:** Drag and drop any `.png`, `.jpg`, or `.jpeg` file into the window.
+1. **Load a Spritesheet:** Drag and drop any `.png`, `.jpg`, or `.jpeg` file into the window, or click **TRY SAMPLE** to test with a bundled sheet.
 2. **Configure the Grid (Left Panel):**
-   * Use the quick presets (`16`, `32`, `64`) or type custom `Frame W`, `Frame H`, `Margin L`, `Margin T`, and `Border` values.
-   * Click `FIT` to center and scale the sheet in the viewport.
+   * Switch between **BY PIXELS** (`Frame W` / `Frame H`) and **BY COUNT** (`Cols` / `Rows`), or click **AUTO** to detect sprites automatically.
+   * Use the quick presets (`16`, `32`, `64`), `-` / `+` stepper buttons, and **FIT** to align the grid.
 3. **Navigate the Viewport (Center Panel):**
    * **Mouse Wheel:** Zoom in and out (`0.25x` to `16x`).
    * **Middle-Click Drag:** Pan around large sheets.
@@ -30,10 +36,10 @@ love .
    * **Left-Click:** Add a frame to the current clip.
    * **Shift + Left-Click:** Select a range of frames from the last clicked cell.
    * **Right-Click:** Remove the most recent occurrence of that cell.
-5. **Manage Multiple Clips:**
-   * Use `<` / `>`, `+`, and `X` under `CLIPS` to create and switch between named clips (for example `idle`, `run`, `attack`).
-   * Use `TOP-DOWN` or `SIDE` to seed common clip names.
-   * Toggle `MODE: LOOP` / `MODE: ONCE` (`pauseAtEnd` in `anim8`) per clip.
+5. **Manage Multiple Clips & Timing:**
+   * Use `<` / `>`, `+`, and `X` under `CLIPS` to create and switch between named clips (`idle`, `run`, `attack`, etc.).
+   * Use **TOP-DOWN** or **SIDE** to seed common clip names.
+   * Drag the **Duration / FPS slider** and toggle `MODE: LOOP` / `MODE: ONCE` (`pauseAtEnd` in `anim8`) per clip.
 6. **Preview (Right Panel):**
    * Use `<`, `PLAY`/`PAUSE`, `>`, and `FLIP` to inspect frames and horizontal facing.
 
@@ -74,14 +80,10 @@ hero.animations.idle:draw(hero.image, x, y)
 
 ---
 
-## Packaging for Distribution
+## Packaging
 
-* **Cross-platform `.love` file:** Zip the contents of this folder (you can omit `suit/docs/` to keep the archive small) and rename the zip to `LoveMotion.love`. Works on Windows, macOS, and Linux.
-* **Windows standalone `.exe`:** Fuse `LoveMotion.love` with `love.exe`:
-  ```cmd
-  copy /b love.exe+LoveMotion.love LoveMotion.exe
-  ```
-  Distribute `LoveMotion.exe` together with the LÖVE `.dll` files.
+* **Cross-platform `.love` file:** Zip the contents of this folder (omitting `.git/`, `tests/`, `exports/`, and `suit/docs/`) and rename it to `LoveMotion.love`.
+* **Automated builds:** Pushing a `v*` tag triggers [release.yml](.github/workflows/release.yml) to build `LoveMotion.love` and `LoveMotion-win64.zip`.
 
 ---
 
