@@ -86,8 +86,15 @@ jobs:
           path: .
 
       - name: Build LoveMotion-x86_64.AppImage
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+          ARCH: x86_64
         run: |
-          wget -q "https://github.com/love2d/love/releases/download/11.5/love-11.5-x86_64.AppImage" -O love.AppImage
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y file libfuse2t64 || sudo apt-get install -y file libfuse2 || true
+
+          wget "https://github.com/love2d/love/releases/download/11.5/love-11.5-x86_64.AppImage" -O love.AppImage
           chmod +x love.AppImage
           ./love.AppImage --appimage-extract
 
@@ -99,9 +106,9 @@ jobs:
           sed -i 's/^Name=.*/Name=LoveMotion/' squashfs-root/love.desktop || true
           sed -i 's/^Comment=.*/Comment=Visual animation editor for LOVE2D and anim8/' squashfs-root/love.desktop || true
 
-          wget -q "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O appimagetool
+          wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" -O appimagetool
           chmod +x appimagetool
-          ARCH=x86_64 ./appimagetool --appimage-extract-and-run squashfs-root LoveMotion-x86_64.AppImage
+          ./appimagetool squashfs-root LoveMotion-x86_64.AppImage
 
       - uses: actions/upload-artifact@v4
         with:
