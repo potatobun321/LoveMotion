@@ -3,6 +3,32 @@ local state = require 'src.state'
 
 local logic = {}
 
+function logic.notify(msg)
+    state.toastText = msg or ""
+    state.toastTimer = 2.0
+end
+
+function logic.loadSample()
+    local ok, fdata = pcall(love.filesystem.newFileData, "sample_images/sample (1).png")
+    if not ok or not fdata then
+        state.errorMessage = "Sample image not found."
+        return
+    end
+    state.fileData = fdata
+    state.fileExt = ".png"
+    state.image = love.graphics.newImage(fdata)
+    state.animation = nil
+    state.generatedCode = ""
+    state.errorMessage = ""
+    state.selectedFrames = {}
+    state.activeClip = "idle"
+    state.inputState.clipName.text = "idle"
+    state.clips = { idle = { frames = state.selectedFrames, duration = state.inputState.duration.text, mode = "loop" } }
+    logic.fitViewport()
+    logic.autoDetectGrid()
+    logic.notify("Loaded sample spritesheet")
+end
+
 local function syncActiveClip()
     local clipName = state.activeClip or "idle"
     local prev = state.clips[clipName] or {}
@@ -409,6 +435,7 @@ function logic.saveToDisk()
     local fullPath = love.filesystem.getSaveDirectory() .. "/" .. exportDir
     pcall(love.system.openURL, "file://" .. fullPath)
     state.errorMessage = ""
+    logic.notify("Saved to exports/" .. name)
 end
 
 return logic

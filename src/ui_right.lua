@@ -28,10 +28,19 @@ function ui_right.update()
         state.flipH = not state.flipH
     end
 
+    if not state.image then
+        local cx = state.screenW / 2 - 70
+        local cy = state.screenH / 2 + 150
+        if suit.Button("TRY SAMPLE", {id="try_sample", font=state.fontSmall}, cx, cy, 140, 28).hit then
+            logic.loadSample()
+        end
+    end
+
     if state.generatedCode ~= "" and state.errorMessage == "" then
         local buttonY = state.screenH - 50
         if suit.Button("COPY SNIPPET", {font=state.fontSmall}, panelX + padding, buttonY, panelW - padding*2, 30).hit then
             love.system.setClipboardText(state.generatedCode)
+            logic.notify("Copied snippet to clipboard!")
         end
     end
 end

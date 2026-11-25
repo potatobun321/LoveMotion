@@ -28,6 +28,9 @@ function love.filedropped(file)
 end
 
 function love.update(dt)
+    if state.toastTimer and state.toastTimer > 0 then
+        state.toastTimer = math.max(0, state.toastTimer - dt)
+    end
     if state.animation and state.playing then
         state.animation:update(dt)
     end
@@ -40,6 +43,19 @@ function love.draw()
     ui_left.draw()
     ui_right.draw()
     suit.draw()
+
+    if state.toastTimer and state.toastTimer > 0 and state.toastText ~= "" then
+        local tw = (state.fontSmall and state.fontSmall:getWidth(state.toastText) or #state.toastText * 8) + 24
+        local tx = (state.screenW - tw) / 2
+        local ty = state.screenH - 44
+        love.graphics.setColor(0.1, 0.1, 0.1, 0.9)
+        love.graphics.rectangle("fill", tx, ty, tw, 28, 4, 4)
+        love.graphics.setColor(0.4, 0.9, 0.5, 1)
+        love.graphics.rectangle("line", tx, ty, tw, 28, 4, 4)
+        if state.fontSmall then love.graphics.setFont(state.fontSmall) end
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.printf(state.toastText, tx, ty + 8, tw, "center")
+    end
 end
 
 function love.mousepressed(x, y, button, istouch, presses)

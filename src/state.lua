@@ -20,6 +20,10 @@ local state = {
     flipH = false,
     gridMode = "pixels", -- "pixels" or "count"
 
+    toastText = "",
+    toastTimer = 0,
+    durationSlider = { value = 0.1, min = 0.02, max = 0.50 },
+
     generatedCode = "",
     errorMessage = "",
 

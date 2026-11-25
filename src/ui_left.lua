@@ -59,26 +59,37 @@ function ui_left.update()
         logic.fitViewport()
     end
 
-    local function addField(label, inputStateObj, onChange)
+    local function addField(label, inputStateObj, onChange, minVal)
         local rx, ry = suit.layout:row(fullW, 22)
-        suit.Label(label, {align="left", font=state.fontSmall}, rx, ry, 110, 22)
-        if suit.Input(inputStateObj, {font=state.fontSmall}, rx + 110, ry, inputW, 22).changed then
+        suit.Label(label, {align="left", font=state.fontSmall}, rx, ry, 100, 22)
+        local boxW = fullW - 152
+        if suit.Input(inputStateObj, {font=state.fontSmall}, rx + 100, ry, boxW, 22).changed then
+            onChange()
+        end
+        if suit.Button("-", {id="dec_"..label, font=state.fontSmall}, rx + 104 + boxW, ry, 22, 22).hit then
+            local v = math.max(minVal or 0, (tonumber(inputStateObj.text) or 0) - 1)
+            inputStateObj.text = tostring(v)
+            onChange()
+        end
+        if suit.Button("+", {id="inc_"..label, font=state.fontSmall}, rx + 128 + boxW, ry, 22, 22).hit then
+            local v = (tonumber(inputStateObj.text) or 0) + 1
+            inputStateObj.text = tostring(v)
             onChange()
         end
     end
 
     if state.gridMode == "count" then
-        addField("Cols:", state.inputState.cols, logic.applyCountGrid)
-        addField("Rows:", state.inputState.rows, logic.applyCountGrid)
-        addField("Margin L:", state.inputState.left, logic.applyCountGrid)
-        addField("Margin T:", state.inputState.top, logic.applyCountGrid)
-        addField("Border:", state.inputState.border, logic.applyCountGrid)
+        addField("Cols:", state.inputState.cols, logic.applyCountGrid, 1)
+        addField("Rows:", state.inputState.rows, logic.applyCountGrid, 1)
+        addField("Margin L:", state.inputState.left, logic.applyCountGrid, 0)
+        addField("Margin T:", state.inputState.top, logic.applyCountGrid, 0)
+        addField("Border:", state.inputState.border, logic.applyCountGrid, 0)
     else
-        addField("Frame W:", state.inputState.frameWidth, logic.updateGrid)
-        addField("Frame H:", state.inputState.frameHeight, logic.updateGrid)
-        addField("Margin L:", state.inputState.left, logic.updateGrid)
-        addField("Margin T:", state.inputState.top, logic.updateGrid)
-        addField("Border:", state.inputState.border, logic.updateGrid)
+        addField("Frame W:", state.inputState.frameWidth, logic.updateGrid, 1)
+        addField("Frame H:", state.inputState.frameHeight, logic.updateGrid, 1)
+        addField("Margin L:", state.inputState.left, logic.updateGrid, 0)
+        addField("Margin T:", state.inputState.top, logic.updateGrid, 0)
+        addField("Border:", state.inputState.border, logic.updateGrid, 0)
     end
 
     suit.layout:row(fullW, 6)
@@ -102,7 +113,16 @@ function ui_left.update()
         logic.deleteActiveClip()
     end
 
-    addField("Duration:", state.inputState.duration, logic.createAnimation)
+    local durNum = tonumber(state.inputState.duration.text) or 0.1
+    if durNum >= state.durationSlider.min and durNum <= state.durationSlider.max then
+        state.durationSlider.value = durNum
+    end
+    local fps = math.floor((1 / math.max(0.01, durNum)) + 0.5)
+    suit.Label(string.format("Dur: %.2fs (%d FPS)", durNum, fps), {align="left", font=state.fontSmall}, suit.layout:row(fullW, 18))
+    if suit.Slider(state.durationSlider, {id="dur_slider"}, suit.layout:row(fullW, 20)).changed then
+        state.inputState.duration.text = string.format("%.2f", state.durationSlider.value)
+        logic.createAnimation()
+    end
 
     local mrx, mry = suit.layout:row(fullW, 24)
     local modeText = (logic.getActiveMode() == "pauseAtEnd") and "MODE: ONCE" or "MODE: LOOP"
