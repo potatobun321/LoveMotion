@@ -21,16 +21,19 @@ jobs:
           sudo apt-get install -y lua5.1 zip
           lua5.1 tests/test_smoke.lua
 
-      - name: Build LoveMotion.love
+      - name: Build LoveMotion.love & Example Demo
         run: |
           mkdir -p out
           zip -9 -r out/LoveMotion.love . \
-            -x "*.git*" "tests/*" "exports/*" "build/*" "suit/docs/*" "*.love" "*.exe" "*.dll"
+            -x "*.git*" "tests/*" "exports/*" "build/*" "examples/*" "suit/docs/*" "*.love" "*.exe" "*.dll"
+          (cd examples/topdown_demo && zip -9 -r ../../out/LoveMotion-TopDownDemo.zip .)
 
       - uses: actions/upload-artifact@v4
         with:
           name: lovemotion-love
-          path: out/LoveMotion.love
+          path: |
+            out/LoveMotion.love
+            out/LoveMotion-TopDownDemo.zip
 
   build-windows:
     needs: build-love
@@ -91,5 +94,6 @@ jobs:
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
           files: |
             artifacts/lovemotion-love/LoveMotion.love
+            artifacts/lovemotion-love/LoveMotion-TopDownDemo.zip
             artifacts/lovemotion-windows/LoveMotion-win64.zip
             artifacts/lovemotion-windows/LoveMotion-Setup.exe

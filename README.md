@@ -78,6 +78,8 @@ hero.animations.idle:update(dt)
 hero.animations.idle:draw(hero.image, x, y)
 ```
 
+For a complete runnable example, check [examples/topdown_demo](examples/topdown_demo) (or download `LoveMotion-TopDownDemo.zip` from Releases).
+
 ---
 
 ## Packaging
